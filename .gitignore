@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# 虚拟环境
+.venv/
+venv/
+
+# 测试与覆盖率
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 课程资料（仅本地保留，不入库）
+实践作业要求v2026.pdf
+实践作业-文档模板2026/
+
+# Office 临时锁定文件
+~$*
+
+# 系统
+Thumbs.db
+.DS_Store
