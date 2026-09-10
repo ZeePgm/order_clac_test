@@ -177,3 +177,96 @@ class TestShippingBoundary:
         """ORD-UT-026 基础运费为负数应抛 ValueError。"""
         with pytest.raises(ValueError):
             calc_shipping(100.0, 200.0, -0.01)
+
+
+# ===========================================================================
+# 三、场景法（ORD-UT-027 ~ 030）
+# ===========================================================================
+class TestOrderScenario:
+    """订单全流程场景法用例。"""
+
+    def test_ord_ut_027_full_checkout_flow(self):
+        """ORD-UT-027 加购→满减→折扣→运费→结算全流程。"""
+        order = Order()
+        order.add_item("钢笔", 50.0, 2)   # 小计 100
+        order.add_item("橡皮", 2.5, 4)    # 小计 10，合计 110
+        order.set_full_reduction(100.0, 20.0)
+        order.set_member_rate(0.9)
+        order.set_shipping(150.0, 8.0)
+
+        result = order.checkout()
+
+        assert result["subtotal"] == 110.0
+        assert result["reduction"] == 20.0
+        assert result["discount"] == 9.0
+        assert result["shipping"] == 8.0
+        assert result["total"] == 89.0
+
+    def test_ord_ut_028_empty_order_checkout(self):
+        """ORD-UT-028 空订单结算各项均为 0。"""
+        result = Order().checkout()
+        assert result == {
+            "subtotal": 0.0,
+            "reduction": 0.0,
+            "discount": 0.0,
+            "shipping": 0.0,
+            "total": 0.0,
+        }
+
+    def test_ord_ut_029_reduction_before_discount(self):
+        """ORD-UT-029 优惠叠加顺序：先满减，再对剩余金额打折。"""
+        order = Order()
+        order.add_item("A", 100.0, 1)
+        order.set_full_reduction(100.0, 30.0)
+        order.set_member_rate(0.8)
+
+        result = order.checkout()
+
+        # 折扣基数 = 100 - 30 = 70，折扣额 = 70 × 0.2 = 14
+        assert result["discount"] == 14.0
+        assert result["total"] == 56.0
+
+    def test_ord_ut_030_remove_duplicate_named_item(self):
+        """ORD-UT-030 移除同名商品只减少一件。
+
+        场景：购物车中有两个同名商品（不同单价），移除后应只减少一件，
+        剩余商品应恰好为 [橡皮, 钢笔]。
+        """
+        order = Order()
+        order.add_item("钢笔", 10.0, 1)
+        order.add_item("橡皮", 5.0, 1)
+        order.add_item("钢笔", 20.0, 1)
+
+        order.remove_item("钢笔")
+
+        names = [item.name for item in order._items]
+        assert len(order._items) == 2, f"移除同名商品后剩余件数错误：{names}"
+        assert names == ["橡皮", "钢笔"], f"移除同名商品后剩余商品错误：{names}"
+
+    def test_ord_ut_033_invalid_member_rate_rejected_on_set(self):
+        """ORD-UT-033 非法折扣率应在设置时即被拒绝。
+
+        场景：调用 set_member_rate(1.5) 应立刻抛出 ValueError，
+        而不是等到 checkout() 时才在计算折扣的过程中暴露异常。
+        """
+        order = Order()
+        order.add_item("A", 100.0, 1)
+
+        with pytest.raises(ValueError):
+            order.set_member_rate(1.5)
+
+    def test_ord_ut_034_negative_reduction_rejected_on_set(self):
+        """ORD-UT-034 负满减金额应在设置时即被拒绝。"""
+        order = Order()
+        order.add_item("A", 100.0, 1)
+
+        with pytest.raises(ValueError):
+            order.set_full_reduction(50.0, -10.0)
+
+    def test_ord_ut_035_negative_shipping_fee_rejected_on_set(self):
+        """ORD-UT-035 负运费应在设置时即被拒绝。"""
+        order = Order()
+        order.add_item("A", 100.0, 1)
+
+        with pytest.raises(ValueError):
+            order.set_shipping(200.0, -5.0)
