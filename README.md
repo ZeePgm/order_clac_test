@@ -5,16 +5,20 @@
 ## 项目结构
 
 ```
-d:\workspace\
-├── order_calc/            # 被测模块（订单金额计算核心业务逻辑）
+.
+├── order_calc/                        # 被测模块（订单金额计算核心业务逻辑）
 │   ├── __init__.py
-│   └── calculator.py      # Item / Order / 各计算函数
-├── tests/                 # 自动化测试脚本（pytest）
-│   ├── __init__.py
-│   └── test_calculator.py
-├── requirements.txt       # 依赖清单
-├── README.md              # 本文件
-└── .gitignore
+│   └── calculator.py                  # Item / Order / 各计算函数
+├── tests/                             # 自动化测试脚本
+│   ├── 模块一自动化测试脚本/
+│   │   └── test_order_calc_m1.py      # 模块一：35 条用例
+│   └── 模块二自动化测试脚本/
+│       └── test_ai_generated_m2.py    # 模块二：24 条用例
+├── 缺陷修复验证/
+│   └── patch_calculator.py            # 缺陷修复验证工具
+├── requirements.txt                   # 依赖清单（pytest）
+├── README.md                          # 本文件
+└── .gitignore                         # 忽略规则
 ```
 
 ## 环境配置
@@ -31,23 +35,22 @@ d:\workspace\
 
 ## 测试运行方式
 
-在项目根目录一键运行全部用例：
+在项目根目录运行全部用例（共 59 条）：
 
 ```powershell
-pytest
+python -m pytest tests -v
 ```
 
-或使用虚拟环境解释器：
+只运行某一个模块：
 
 ```powershell
-.venv\Scripts\python.exe -m pytest
+python -m pytest tests/模块一自动化测试脚本 -v
+python -m pytest tests/模块二自动化测试脚本 -v
 ```
 
-查看详细输出与覆盖率（可选）：
-
-```powershell
-pytest -v
-```
+> 被测代码 `order_calc/calculator.py` 在测试期间未做任何修改，
+> 因此执行时会出现 10 条失败用例（模块一 6 条、模块二 4 条），
+> 这是缺陷报告（附录2）所记录缺陷的复现证据，属于预期结果。
 
 ## 被测对象说明
 
